@@ -8,9 +8,11 @@ class Goodreads(scrapy.Spider):
     def start_requests(self):
         urls = []
 
+        link = 'https://www.goodreads.com/list/show/23425._'
+        page = 11
         # add urls of pages in this case 11 pages
-        for i in range(1):
-            urls.append('https://www.goodreads.com/list/show/128127._?page='+str(i+1))
+        for i in range(page):
+            urls.append(link+'?page='+str(i+1))
 
         for url in urls:
             yield scrapy.Request(url=url, callback=self.parse_front)
@@ -22,12 +24,13 @@ class Goodreads(scrapy.Spider):
 
     def parse_page(self,response):
 
-        book_title = response.xpath('//h1[@id="bookTitle"]/text()')
-        book_title_ext = book_title.extract_first()
-        isbn = response.xpath('//div[@id="bookDataBox"]/div[2]/div[2]/text()')
-        isbn_ext = isbn.extract_first()
+        book_title = response.xpath('//h1[@id="bookTitle"]/text()').extract_first().strip()
+        ratings = response.xpath('//meta[@itemprop="ratingCount"]/@content').extract_first()
+        reviews = response.xpath('//meta[@itemprop="reviewCount"]/@content').extract_first()
+        rate_val = response.xpath('//span[@itemprop="ratingValue"]/text()').extract_first().strip()
+        isbn = response.xpath('//div[@id="bookDataBox"]/div[2]/div[2]/text()').extract_first().strip()
         
-        yield {'isbn':''.join(isbn_ext), 'title':''.join(book_title_ext)}
+        yield {'isbn':isbn, 'title':book_title, 'rating_count':ratings, 'reviews':reviews,'rating_value':rate_val}
     
 
 
